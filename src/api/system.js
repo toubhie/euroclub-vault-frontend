@@ -1,25 +1,19 @@
-import { $axios, baseURL } from "./config";
+import {  makeGetRequest, makePostRequest } from "./config";
 
-export const loginUser = async (form) => {
-    return $axios.post('/Login', form);
-}
+const updatePlayer = async (id, data) => {
+    return await makePostRequest('player', data);
+};
 
-export const getAllTasks = async () => {
-    return $axios.get('/tasks');
-}
+const createPlayer = async (data) => {
+    return await makePostRequest('player', data);
+};
 
-export const createTask = async (payload) => {
-    return $axios.post('/tasks', payload);
-}
+const getAllPlayers = async () => {
+    return await makeGetRequest('players');
+};
 
-export const updateTask = async (taskId, payload) => {
-    return $axios.put(`/tasks/${taskId}`, payload);
-}
+const getAllPlayerPositions = async () => {
+    return await makeGetRequest('player-positions');
+};
 
-export const deleteTask = async (taskId) => {
-    return $axios.delete(`/tasks/${taskId}`);
-}
-
-export const UpdateTaskStatus = async (taskId, status) => {
-    return $axios.patch(`/tasks/${taskId}`, { status });
-}
+export { getAllPlayers, updatePlayer, createPlayer, getAllPlayerPositions };

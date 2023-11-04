@@ -1,25 +1,26 @@
-import axios from 'axios'
+import axios from 'axios';
+import constants from '../util/constants';
 
-const baseURL = process.env.REACT_APP_SERVER_URL
+const makeGetRequest = async (url) => {
+    return axios.get(`${constants.baseUrl}${url}`)
+        .then(response => response)
+        .catch(function (error) {
+            // handle error
+            console.log(error);
+        })
+}
 
-const $axios = axios.create({
-    baseURL,
-});
 
-$axios.interceptors.request.use((config) => {
-    return config
-})
+const makePostRequest = async (url , data) => {
+    return axios.post(`${constants.baseUrl}${url}`, data)
+        .then(response => response)
+        .catch(function (error) {
+            // handle error
+            console.log(error);
+        })
+}
 
-$axios.interceptors.response.use(
-    request => {
-        return Promise.resolve(request?.data || {})
-    },
-    error => {
-        if((error?.response?.status === 401 || error?.status === 401) && (error?.config?.url !== ('/login'))) {
-            window.location.href = '/'
-        } 
-        return Promise.reject(error?.response?.data || 'An error occurred')
-    }
-)
-
-export { $axios };
+export {
+    makeGetRequest,
+    makePostRequest
+}

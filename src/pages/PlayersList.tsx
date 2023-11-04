@@ -1,33 +1,25 @@
 import { Button, CircularProgress, Dialog, DialogActions, DialogContent, Divider, Grid, IconButton } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import PageContainer from '../components/PageContainer'
-import { getAllTasks, updateTask, createTask, deleteTask } from '../api/system'
+import { getAllPlayers, createPlayer, updatePlayer, getAllPlayerPositions } from '../api/system'
 import { Formik, Form } from 'formik'
 import { useSnackbar } from 'notistack'
 import { DataGrid } from '@mui/x-data-grid'
 import TextInput from '../components/common/TextInput'
 import SelectInput from '../components/common/SelectInput'
 import { Edit, AssignmentOutlined, DeleteOutline, TaskAltOutlined, PersonAddAlt } from '@mui/icons-material'
+import PlayerContainer from '../components/PlayerContainer'
+import PlayerDetailModal from '../components/PlayerDetailModal'
 //import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 
-const Tasks = () => {
+const PlayersList = () => {
     const [ showModal, setShowModal ] = useState(false)
     const [ deleteModal, setShowDeleteModal ] = useState(false)
     const [ doneModal, setShowDoneModal ] = useState(false)
     const [ selectedTask, setSelectedTask ] = useState(null);
-    const [ records, setRecords ] = useState([
-        {
-            id: '643a03f8996950ecb7fb4817',
-            "name": "Task 5",
-            "description": "This is a test 5 description",
-            "priority": "1",
-            "startDate": "2023-04-14",
-            "dueDate": "2023-04-18",
-            "assignedTo": "Mark",
-            "status": "Pending"
+    const [ players, setPlayers ] = useState([]);
+    const [ playerPositions, setPlayerPositions ] = useState([]);
 
-        }
-    ]);
     const { enqueueSnackbar } = useSnackbar();
     const [ processing, setProcessing ] = useState(false)
 
@@ -36,76 +28,25 @@ const Tasks = () => {
         status: ""
     }
 
-    const columns = [
-        { 
-            field: 'sn', headerName: 'S/N', width: 100, sortable: false,
-            renderCell: (params: any) => (
-                <p
-                    style={{ margin: 'auto' }}
-                >
-                    {params.api.getRowIndex(params?.row?.id) + 1}
-                </p>
-            )
-        },
-        
-        {
-            field: 'actions', headerName: 'Actions', width: 150, sortable: false,
-            renderCell: (params: any) => (
-                <div className='action-icons' style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', width: '100%', padding: '0 0.5rem' }}>
-                    <IconButton
-                        size='small'
-                        color="primary"
-                        //variant="outlined" 
-                        title='Mark as Done'
-                        className='p-0 m-0'
-                        onClick={() => {
-                            setSelectedTask(params?.row || defaultTask);
-                            setShowDoneModal(true)
-                        }}
-                    >
-                        <TaskAltOutlined />
-                    </IconButton>
-                    <IconButton
-                        size='small'
-                        color="info"
-                        //variant="outlined"
-                        title='Edit Task' className='p-0 m-0'
-                        onClick={() => {
-                            setSelectedTask(params?.row || defaultTask);
-                            setShowModal(true)
-                        }}
-                    >
-                        <Edit />
-                    </IconButton>
-                    <IconButton
-                        size='small'
-                        color="error"
-                        //variant="outlined"
-                        title='Delete Task' className='p-0 m-0'
-                        onClick={() => {
-                            setSelectedTask(params?.row);
-                            setShowDeleteModal(true)
-                        }}
-                    >
-                        <DeleteOutline />
-                    </IconButton>
-                </div>
-            )
-        },
-        { field: 'name', headerName: 'Name', width: 200 },
-        { field: 'description', headerName: 'Description', width: 400 },
-        { field: 'priority', headerName: 'Priority', width: 100 },
-        { field: 'status', headerName: 'Status', width: 100 },
-        { field: 'startDate', headerName: 'Start Date', width: 200 },
-        { field: 'dueDate', headerName: 'Due Date', width: 200 },
-        { field: 'assignedTo', headerName: 'Assigned To', width: 200 },
-    ];
+
+    const [prices, setPrices] = useState({ min: null, max: null });
+    const [searchText, setSearchText] = useState('');
+
+  //  const {name: categoryName} = categories.find(({id}) => id === activeCategoryId) || {};
+
 
     const init = async () => {
         try {
             setProcessing(true)
-            const data: any = await getAllTasks();
-            setRecords(data || [])
+            const playersData: any = await getAllPlayers();
+
+            const playerPositionsData: any = await getAllPlayerPositions();
+
+            console.log("playersData", playersData);
+            setPlayers(playersData || [])
+
+            console.log("playerPositionsData", playerPositionsData);
+            setPlayerPositions(playerPositionsData || [])
         }
         catch (err) {
             enqueueSnackbar(err?.message || err?.responseMessage || 'An error occurred', { variant: 'error' })
@@ -117,7 +58,7 @@ const Tasks = () => {
 
     const createOrUpdateTask = async (values, { resetForm }) => {
         try {
-            const resp = values?.id ? await updateTask(values?.id, values) : await createTask(values);
+            const resp = values?.id ? await updatePlayer(values?.id, values) : await createPlayer(values);
             init();
             setSelectedTask(null)
             setShowModal(false)
@@ -128,18 +69,18 @@ const Tasks = () => {
         }
     }
 
-    const deleteAction = async (values, { resetForm }) => {
-        try {
-            const resp = await deleteTask(values.id);
-            init();
-            setShowDeleteModal(null)
-            setShowModal(false)
-            enqueueSnackbar('Task Deleted Successfully')
-        }
-        catch (err) {
-            enqueueSnackbar(err?.message || err?.responseMessage || 'An error occurred', { variant: 'error' })
-        }
-    }
+    // const deleteAction = async (values, { resetForm }) => {
+    //     try {
+    //         const resp = await deleteTask(values.id);
+    //         init();
+    //         setShowDeleteModal(null)
+    //         setShowModal(false)
+    //         enqueueSnackbar('Task Deleted Successfully')
+    //     }
+    //     catch (err) {
+    //         enqueueSnackbar(err?.message || err?.responseMessage || 'An error occurred', { variant: 'error' })
+    //     }
+    // }
 
     useEffect(() => {
         init()
@@ -165,7 +106,19 @@ const Tasks = () => {
                         <div className='col-12 text-align-right'>
                             <Button startIcon={<PersonAddAlt />} variant="contained" onClick={() => { setSelectedTask(defaultTask); setShowModal(true) }}>Create Player</Button>
                         </div>
-                        <div className='col-12 mt-4'>
+
+
+                        <PlayerContainer
+          positions={playerPositions}
+          players={players}
+          categoryName={'cat'}
+          setPrices={setPrices}
+        />
+        {/* {modalOpen && activePlayer ? (
+          <PlayerDetailModal player={activePlayer} dispatch={dispatch} />
+        ) : null} */}
+
+                        {/* <div className='col-12 mt-4'>
                             <div style={{ height: 400, width: '100%', textAlign: 'center' }}>
                                 <DataGrid 
                                     className=''
@@ -176,12 +129,12 @@ const Tasks = () => {
                                     disableSelectionOnClick
                                 />
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>
 
-            <Dialog open={showModal} maxWidth="lg">
+            {/* <Dialog open={showModal} maxWidth="lg">
                 <Formik enableReinitialize initialValues={selectedTask} onSubmit={createOrUpdateTask}>
                     {({ isSubmitting, values }) => (
                         <Form>
@@ -289,9 +242,9 @@ const Tasks = () => {
                         </Form>
                     )}
                 </Formik>
-            </Dialog>
+            </Dialog> */}
         </PageContainer>
     )
 }
 
-export default Tasks
+export default PlayersList;
