@@ -14,14 +14,14 @@ export default function PriceFilter({setPrices}) {
       <h3>Filter By Player Value</h3>
       <form className="price-filter" onSubmit={handleSubmit}>
         <input
-          placeholder="$ Min"
+          placeholder="£ Min"
           value={minValue || ''}
           onChange={event => {
             setMinValue(event.target.value);
           }}
         />
         <input
-          placeholder="$ Max"
+          placeholder="£ Max"
           value={maxValue || ''}
           onChange={event => {
             setMaxValue(event.target.value);

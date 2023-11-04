@@ -5,6 +5,8 @@ import { IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
 import { useRef } from 'react';
 
+import './App.css';
+
 const App = () => {
     const stackRef = useRef(null);
 

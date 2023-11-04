@@ -11,26 +11,30 @@ import { Edit, AssignmentOutlined, DeleteOutline, TaskAltOutlined, PersonAddAlt 
 import PlayerContainer from '../components/PlayerContainer'
 import PlayerDetailModal from '../components/PlayerDetailModal'
 //import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
+import countriesData from '../util/countries.json';
 
 const PlayersList = () => {
     const [ showModal, setShowModal ] = useState(false)
     const [ deleteModal, setShowDeleteModal ] = useState(false)
     const [ doneModal, setShowDoneModal ] = useState(false)
-    const [ selectedTask, setSelectedTask ] = useState(null);
+    const [ selectedPlayer, setSelectedPlayer ] = useState(null);
     const [ players, setPlayers ] = useState([]);
     const [ playerPositions, setPlayerPositions ] = useState([]);
 
     const { enqueueSnackbar } = useSnackbar();
     const [ processing, setProcessing ] = useState(false)
 
-    const defaultTask = {
-        name: "", description: "", priority: "", startDate: "", dueDate: "", assignedTo: "",
-        status: ""
-    }
+    const defaultPlayer = {
+        fullname: "", club: "", position: "", nationality: "", age: "", player_value: ""}
 
 
     const [prices, setPrices] = useState({ min: null, max: null });
     const [searchText, setSearchText] = useState('');
+
+    const countryOptions = Object.entries(countriesData).map(([code, label]) => ({
+        code,
+        label,
+      }));
 
   //  const {name: categoryName} = categories.find(({id}) => id === activeCategoryId) || {};
 
@@ -43,10 +47,10 @@ const PlayersList = () => {
             const playerPositionsData: any = await getAllPlayerPositions();
 
             console.log("playersData", playersData);
-            setPlayers(playersData || [])
+            setPlayers(playersData?.data || [])
 
             console.log("playerPositionsData", playerPositionsData);
-            setPlayerPositions(playerPositionsData || [])
+            setPlayerPositions(playerPositionsData?.data || [])
         }
         catch (err) {
             enqueueSnackbar(err?.message || err?.responseMessage || 'An error occurred', { variant: 'error' })
@@ -56,11 +60,12 @@ const PlayersList = () => {
         }
     }
 
-    const createOrUpdateTask = async (values, { resetForm }) => {
+    const createOrUpdatePlayer = async (values, { resetForm }) => {
+        console.log('values', values)
         try {
             const resp = values?.id ? await updatePlayer(values?.id, values) : await createPlayer(values);
             init();
-            setSelectedTask(null)
+            setSelectedPlayer(null)
             setShowModal(false)
             enqueueSnackbar('Action performed successfully')
         }
@@ -86,6 +91,8 @@ const PlayersList = () => {
         init()
     }, [])
 
+    console.log('playerPositions', playerPositions)
+
     return (
         <PageContainer pageTitle='All Players' processing={processing}>
             <section className="inner-banner parallax-section">
@@ -104,7 +111,7 @@ const PlayersList = () => {
                 <div className="container">
                     <div className="row">
                         <div className='col-12 text-align-right'>
-                            <Button startIcon={<PersonAddAlt />} variant="contained" onClick={() => { setSelectedTask(defaultTask); setShowModal(true) }}>Create Player</Button>
+                            <Button startIcon={<PersonAddAlt />} variant="contained" onClick={() => { setSelectedPlayer(defaultPlayer); setShowModal(true) }}>Create Player</Button>
                         </div>
 
 
@@ -134,42 +141,44 @@ const PlayersList = () => {
                 </div>
             </div>
 
-            {/* <Dialog open={showModal} maxWidth="lg">
-                <Formik enableReinitialize initialValues={selectedTask} onSubmit={createOrUpdateTask}>
+            <Dialog open={showModal} maxWidth="lg">
+                <Formik enableReinitialize initialValues={selectedPlayer} onSubmit={createOrUpdatePlayer}>
                     {({ isSubmitting, values }) => (
                         <Form>
                             <DialogContent className='pl-4 pr-4'>
-                                <h3 className='text-bold mt-05' >{values?.id ? 'Update' : 'Create'} Task</h3>
+                                <h3 className='text-bold mt-05' >{values?.id ? 'Update' : 'Create'} Player</h3>
                                 <Divider className="mt-05 mb-2" />
                                 <Grid container spacing={3}>
                                     <Grid item xs={12}>
-                                        <TextInput id="name" required label="Task Name" customChange={undefined} />
+                                        <TextInput id="fullname" required label="Full name" customChange={undefined} />
                                     </Grid>
                                     <Grid item xs={12}>
-                                        <TextInput id="description" multiline minRows={2} required label="Description" customChange={undefined} />
-                                    </Grid>
-                                    <Grid item xs={12}>
-                                        <SelectInput id="priority" field="code" fieldDisplay="label" required label="Priority" options={[{ code: '1', label: 'Low' }, { code: '2', label: 'Medium' }, { code: '3', label: 'High' }]} error={undefined} customChange={undefined} readOnly={undefined} selectFunction={undefined} />
+                                        {/* <TextInput id="club" multiline minRows={2} required label="Description" customChange={undefined} /> */}
+                                        <TextInput id="club" required label="Club" customChange={undefined} />
                                     </Grid>
                                     <Grid item xs={12} md={6}>
-                                        <TextInput id="startDate" required type="date" label="Start Date" customChange={undefined} />
+                                        <SelectInput id="nationality" field="code" fieldDisplay="label" required label="Nationality" options={ countryOptions } error={undefined} customChange={undefined} readOnly={undefined} selectFunction={undefined} />
                                     </Grid>
                                     <Grid item xs={12} md={6}>
-                                        <TextInput id="dueDate" required type="date" label="Due Date" customChange={undefined} />
+                                        <SelectInput id="position" field="id" fieldDisplay="description" required label="Player position" options={ playerPositions } error={undefined} customChange={undefined} readOnly={undefined} selectFunction={undefined} />
                                     </Grid>
-                                    <Grid item xs={12}>
-                                        <SelectInput id="assignedTo" field="code" fieldDisplay="code" required label="Assigned To" options={[{ code: 'Jon Snow' }, { code: 'Daenerys Targaryen' }, { code: 'Tyrion Lannister' }]} error={undefined} customChange={undefined} readOnly={undefined} selectFunction={undefined} />
+
+                                    <Grid item xs={12} md={6}>
+                                        <TextInput id="age" required label="Age" customChange={undefined} />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <TextInput id="player_value" required label="Player value" customChange={undefined} />
                                     </Grid>
                                 </Grid>
                             </DialogContent>
                             <DialogActions className='pr-3 pb-3'>
-                                <Button disabled={isSubmitting} onClick={() => { if(!isSubmitting) { setShowModal(false); setSelectedTask(null) }}} color="secondary" variant="contained" >Cancel</Button>
+                                <Button disabled={isSubmitting} onClick={() => { if(!isSubmitting) { setShowModal(false); setSelectedPlayer(null) }}} color="secondary" variant="contained" >Cancel</Button>
                                 <Button type='submit' variant="contained" disabled={isSubmitting} >
                                     {
                                         isSubmitting ?
                                         <CircularProgress size={15} color="inherit" />
                                         :
-                                        `${values?.id ? 'Update' : 'Add'} Task`
+                                        `${values?.id ? 'Update' : 'Add'} Player`
                                     }
                                 </Button>
                             </DialogActions>
@@ -178,8 +187,8 @@ const PlayersList = () => {
                 </Formik>
             </Dialog>
 
-            <Dialog open={deleteModal} maxWidth="lg">
-                <Formik enableReinitialize initialValues={selectedTask} onSubmit={deleteAction}>
+            {/* <Dialog open={deleteModal} maxWidth="lg">
+                <Formik enableReinitialize initialValues={selectedPlayer} onSubmit={deleteAction}>
                     {({ isSubmitting, values }) => (
                         <Form>
                             <DialogContent className='pl-4 pr-4'>
@@ -196,7 +205,7 @@ const PlayersList = () => {
                                 </Grid>
                             </DialogContent>
                             <DialogActions className='pr-3 pb-3'>
-                                <Button disabled={isSubmitting} onClick={() => { if(!isSubmitting) { setShowDeleteModal(false); setSelectedTask(null) }}} color="secondary" variant="contained" >Cancel</Button>
+                                <Button disabled={isSubmitting} onClick={() => { if(!isSubmitting) { setShowDeleteModal(false); setSelectedPlayer(null) }}} color="secondary" variant="contained" >Cancel</Button>
                                 <Button type='submit' variant="contained" disabled={isSubmitting} color="error">
                                     {
                                         isSubmitting ?
@@ -212,7 +221,7 @@ const PlayersList = () => {
             </Dialog>
 
             <Dialog open={doneModal} maxWidth="lg">
-                <Formik enableReinitialize initialValues={selectedTask} onSubmit={deleteAction}>
+                <Formik enableReinitialize initialValues={selectedPlayer} onSubmit={deleteAction}>
                     {({ isSubmitting, values }) => (
                         <Form>
                             <DialogContent className='pl-4 pr-4'>
@@ -229,7 +238,7 @@ const PlayersList = () => {
                                 </Grid>
                             </DialogContent>
                             <DialogActions className='pr-3 pb-3'>
-                                <Button disabled={isSubmitting} onClick={() => { if(!isSubmitting) { setShowDoneModal(false); setSelectedTask(null) }}} color="secondary" variant="contained" >Cancel</Button>
+                                <Button disabled={isSubmitting} onClick={() => { if(!isSubmitting) { setShowDoneModal(false); setSelectedPlayer(null) }}} color="secondary" variant="contained" >Cancel</Button>
                                 <Button type='submit' variant="contained" disabled={isSubmitting}>
                                     {
                                         isSubmitting ?

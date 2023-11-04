@@ -8,6 +8,8 @@ type PositionsProps = {
 };
 
 export default function Positions({ positions, activePositionId, dispatch }: PositionsProps) {
+
+  console.log('positions',  positions )
   return (
     <div className="categories">
       <h3>All Positions</h3>

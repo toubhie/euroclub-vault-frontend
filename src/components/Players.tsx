@@ -8,18 +8,20 @@ type PlayerCardProps = {
 }
 
 const PlayerCard = ({ dispatch, player, id, setModalOpen }: PlayerCardProps) => {
-  const {name, price, images} = player;
+
+  console.log('player>>>>', player)
+  const {fullname, player_value: playerValue, images} = player;
 
   return (
     <button
       className="product-card"
       onClick={() => {
-        dispatch({type: 'SET_ACTIVE_PRODUCT_ID', id});
+        dispatch({type: 'SET_ACTIVE_PLAYER_ID', id});
       }}
     >
-      <img className="product-card-image" src={images.medium} alt={name} />
-      <p className="product-name">{name}</p>
-      <p className="product-price">${price.toFixed(2)}</p>
+      <img className="product-card-image" src={'https://picsum.photos/id/237/200/300'} alt={fullname} />
+      <p className="product-name">{fullname}</p>
+      <p className="product-price">£{Number(playerValue).toFixed(2)}</p>
     </button>
   );
 };

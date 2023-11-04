@@ -5,7 +5,7 @@ const updatePlayer = async (id, data) => {
 };
 
 const createPlayer = async (data) => {
-    return await makePostRequest('player', data);
+    return await makePostRequest('players', data);
 };
 
 const getAllPlayers = async () => {
