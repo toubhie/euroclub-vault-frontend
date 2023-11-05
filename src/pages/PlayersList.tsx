@@ -1,43 +1,125 @@
-import { Button, CircularProgress, Dialog, DialogActions, DialogContent, Divider, Grid, IconButton } from '@mui/material'
+import { Autocomplete, Button, CircularProgress, Dialog, DialogActions, DialogContent, Divider, Grid, IconButton, TextField } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import PageContainer from '../components/PageContainer'
-import { getAllPlayers, createPlayer, updatePlayer, getAllPlayerPositions } from '../api/system'
+import { getAllPlayers, createPlayer, updatePlayer, getAllPlayerPositions, getWikiInfoForPlayer, deletePlayer } from '../api/apis'
 import { Formik, Form } from 'formik'
 import { useSnackbar } from 'notistack'
 import { DataGrid } from '@mui/x-data-grid'
 import TextInput from '../components/common/TextInput'
 import SelectInput from '../components/common/SelectInput'
-import { Edit, AssignmentOutlined, DeleteOutline, TaskAltOutlined, PersonAddAlt } from '@mui/icons-material'
-import PlayerContainer from '../components/PlayerContainer'
-import PlayerDetailModal from '../components/PlayerDetailModal'
-//import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
+import { Edit, DeleteOutline, PersonAddAlt, Visibility } from '@mui/icons-material'
 import countriesData from '../util/countries.json';
+import moment from 'moment'
+import { formatCurrency, renderHTML } from '../util/helpers'
 
 const PlayersList = () => {
-    const [ showModal, setShowModal ] = useState(false)
-    const [ deleteModal, setShowDeleteModal ] = useState(false)
-    const [ doneModal, setShowDoneModal ] = useState(false)
-    const [ selectedPlayer, setSelectedPlayer ] = useState(null);
-    const [ players, setPlayers ] = useState([]);
-    const [ playerPositions, setPlayerPositions ] = useState([]);
-
     const { enqueueSnackbar } = useSnackbar();
-    const [ processing, setProcessing ] = useState(false)
+
+    const [showModal, setShowModal] = useState(false)
+    const [deleteModal, setShowDeleteModal] = useState(false)
+    const [viewPlayerModal, setViewPlayerModal] = useState(false)
+    const [selectedPlayer, setSelectedPlayer] = useState(null);
+    const [players, setPlayers] = useState([]);
+    const [playerPositions, setPlayerPositions] = useState([]);
+    const [playerWikiInfo, setPlayerWikiInfo] = useState({
+        title: "",
+        extract: "",
+        imageUrl: ""
+    });
+    const [sortModel, setSortModel] = useState([]);
+    const [selectedPosition, setSelectedPosition] = useState(null);
+    const [filteredRows, setFilteredRows] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [processing, setProcessing] = useState(false)
 
     const defaultPlayer = {
-        fullname: "", club: "", position: "", nationality: "", age: "", player_value: ""}
-
-
-    const [prices, setPrices] = useState({ min: null, max: null });
-    const [searchText, setSearchText] = useState('');
-
+        fullname: "", club: "", position: "", nationality: "", age: "", player_value: ""
+    }
     const countryOptions = Object.entries(countriesData).map(([code, label]) => ({
         code,
         label,
-      }));
+    }));
 
-  //  const {name: categoryName} = categories.find(({id}) => id === activeCategoryId) || {};
+    const columns = [
+        {
+            field: 'sn', headerName: 'S/N', width: 50, sortable: false,
+            renderCell: (params) => (
+                <p
+                    style={{ margin: 'auto' }}
+                >
+                    {params.api.getRowIndex(params?.row?.id) + 1}
+                </p>
+            )
+        },
+        { field: 'fullname', headerName: 'Full name', width: 200 },
+        { field: 'club', headerName: 'Club', width: 200 },
+        { field: 'position', headerName: 'Position', width: 100 },
+        { field: 'nationality', headerName: 'Nationality', width: 100 },
+        { field: 'player_value', headerName: 'Player value', width: 200 },
+        { field: 'created_at', headerName: 'Date Created', width: 200 },
 
+        {
+            field: 'actions', headerName: 'Actions', width: 150, sortable: false,
+            renderCell: (params) => (
+                <div className='action-icons' style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', width: '100%', padding: '0 0.5rem' }}>
+                    <IconButton
+                        size='small'
+                        color="primary"
+                        title='View' className='p-0 m-0'
+                        onClick={async () => {
+                            console.log('params?.row', params?.row);
+
+                            const wikiData: any = await getWikiInfoForPlayer(params?.row?.fullname);
+
+                            console.log('wikiData', wikiData);
+
+                            if (wikiData?.data) {
+                                setPlayerWikiInfo({
+                                    title: wikiData?.data?.title,
+                                    extract: wikiData?.data?.extract,
+                                    imageUrl: wikiData?.data?.imageUrl
+                                });
+                            } else {
+                                setPlayerWikiInfo(null);
+                            }
+
+                            setSelectedPlayer(params?.row || defaultPlayer);
+                            setViewPlayerModal(true)
+                        }}
+                    >
+                        <Visibility />
+                    </IconButton>
+                    <IconButton
+                        size='small'
+                        color="info"
+                        title='Edit Task' className='p-0 m-0'
+                        onClick={() => {
+                            setSelectedPlayer(params?.row || defaultPlayer);
+                            setShowModal(true)
+                        }}
+                    >
+                        <Edit />
+                    </IconButton>
+                    <IconButton
+                        size='small'
+                        color="error"
+                        title='Delete Task' className='p-0 m-0'
+                        onClick={() => {
+                            setSelectedPlayer(params?.row);
+                            setShowDeleteModal(true)
+                        }}
+                    >
+                        <DeleteOutline />
+                    </IconButton>
+                </div>
+            )
+        },
+    ];
+
+
+    useEffect(() => {
+        init();
+    }, [])
 
     const init = async () => {
         try {
@@ -60,38 +142,53 @@ const PlayersList = () => {
         }
     }
 
-    const createOrUpdatePlayer = async (values, { resetForm }) => {
+    const createOrUpdatePlayer = async (values: any) => {
         console.log('values', values)
         try {
-            const resp = values?.id ? await updatePlayer(values?.id, values) : await createPlayer(values);
-            init();
-            setSelectedPlayer(null)
-            setShowModal(false)
-            enqueueSnackbar('Action performed successfully')
+            const response = values?.id ? await updatePlayer(values?.id, values) : await createPlayer(values);
+
+            console.log('response', response)
+
+            if (response) {
+                init();
+                setSelectedPlayer(null)
+                setShowModal(false)
+                enqueueSnackbar(values?.id ? 'Player information updated successfully' : 'Player created successfully')
+            }
+
         }
         catch (err) {
             enqueueSnackbar(err?.message || err?.responseMessage || 'An error occurred', { variant: 'error' })
         }
     }
 
-    // const deleteAction = async (values, { resetForm }) => {
-    //     try {
-    //         const resp = await deleteTask(values.id);
-    //         init();
-    //         setShowDeleteModal(null)
-    //         setShowModal(false)
-    //         enqueueSnackbar('Task Deleted Successfully')
-    //     }
-    //     catch (err) {
-    //         enqueueSnackbar(err?.message || err?.responseMessage || 'An error occurred', { variant: 'error' })
-    //     }
-    // }
+    const deleteAction = async (values: any) => {
+        try {
+            const resp = await deletePlayer(values.id);
+            init();
+            setShowDeleteModal(null)
+            setShowModal(false)
+            enqueueSnackbar('Player Deleted Successfully')
+        }
+        catch (err) {
+            enqueueSnackbar(err?.message || err?.responseMessage || 'An error occurred', { variant: 'error' })
+        }
+    }
 
-    useEffect(() => {
-        init()
-    }, [])
+    const handleSortAsc = () => {
+        setSortModel([{ field: 'fullname', sort: 'asc' }]);
+    };
+
+    const handleSortDesc = () => {
+        setSortModel([{ field: 'fullname', sort: 'desc' }]);
+    };
+
+    const handlePositionChange = (event, newValue) => {
+        setSelectedPosition(newValue);
+    };
 
     console.log('playerPositions', playerPositions)
+
 
     return (
         <PageContainer pageTitle='All Players' processing={processing}>
@@ -114,29 +211,47 @@ const PlayersList = () => {
                             <Button startIcon={<PersonAddAlt />} variant="contained" onClick={() => { setSelectedPlayer(defaultPlayer); setShowModal(true) }}>Create Player</Button>
                         </div>
 
+                        <div className='col-12 mt-4'>
 
-                        <PlayerContainer
-          positions={playerPositions}
-          players={players}
-          categoryName={'cat'}
-          setPrices={setPrices}
-        />
-        {/* {modalOpen && activePlayer ? (
-          <PlayerDetailModal player={activePlayer} dispatch={dispatch} />
-        ) : null} */}
+                            <div style={{ display: 'flex', marginBottom: 20 }}>
+                                <div style={{ flex: '30%', marginRight: '5px' }}>
+                                    <Button variant="outlined" onClick={handleSortAsc} style={{ marginRight: 20 }}>Sort Asc</Button>
+                                    <Button variant="outlined" onClick={handleSortDesc}>Sort Desc</Button>
+                                </div>
 
-                        {/* <div className='col-12 mt-4'>
+                                <div style={{ flex: '80%', display: 'flex', flexDirection: 'row' }}>
+                                    <div style={{ flex: '80%' }}>
+                                        <Autocomplete
+                                            options={playerPositions || []}
+                                            getOptionLabel={(option) => option.description}
+                                            onChange={handlePositionChange}
+                                            multiple
+                                            id="tags-outlined"
+                                            filterSelectedOptions
+                                            renderInput={(params) => <TextField {...params} label="Filter by Position" variant="outlined" />}
+                                        />
+                                    </div>
+                                    <div style={{ flex: '20%' }}>
+                                        <Button onClick={() => setSelectedPosition(null)}>Clear Filter</Button>
+                                    </div>
+                                </div>
+                            </div>
+
+
                             <div style={{ height: 400, width: '100%', textAlign: 'center' }}>
-                                <DataGrid 
+                                <DataGrid
                                     className=''
                                     columns={columns}
                                     getRowId={row => row.id}
-                                    rows={records}
+                                    rows={players}
                                     checkboxSelection={false}
                                     disableSelectionOnClick
+
+                                    sortModel={sortModel}
+                                    onSortModelChange={(model) => setSortModel(model)}
                                 />
                             </div>
-                        </div> */}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -153,14 +268,13 @@ const PlayersList = () => {
                                         <TextInput id="fullname" required label="Full name" customChange={undefined} />
                                     </Grid>
                                     <Grid item xs={12}>
-                                        {/* <TextInput id="club" multiline minRows={2} required label="Description" customChange={undefined} /> */}
                                         <TextInput id="club" required label="Club" customChange={undefined} />
                                     </Grid>
                                     <Grid item xs={12} md={6}>
-                                        <SelectInput id="nationality" field="code" fieldDisplay="label" required label="Nationality" options={ countryOptions } error={undefined} customChange={undefined} readOnly={undefined} selectFunction={undefined} />
+                                        <SelectInput id="nationality" field="label" fieldDisplay="label" required label="Nationality" options={countryOptions} error={undefined} customChange={undefined} readOnly={undefined} selectFunction={undefined} />
                                     </Grid>
                                     <Grid item xs={12} md={6}>
-                                        <SelectInput id="position" field="id" fieldDisplay="description" required label="Player position" options={ playerPositions } error={undefined} customChange={undefined} readOnly={undefined} selectFunction={undefined} />
+                                        <SelectInput id="position" field="name" fieldDisplay="description" required label="Player position" options={playerPositions} error={undefined} customChange={undefined} readOnly={undefined} selectFunction={undefined} />
                                     </Grid>
 
                                     <Grid item xs={12} md={6}>
@@ -172,13 +286,13 @@ const PlayersList = () => {
                                 </Grid>
                             </DialogContent>
                             <DialogActions className='pr-3 pb-3'>
-                                <Button disabled={isSubmitting} onClick={() => { if(!isSubmitting) { setShowModal(false); setSelectedPlayer(null) }}} color="secondary" variant="contained" >Cancel</Button>
+                                <Button disabled={isSubmitting} onClick={() => { if (!isSubmitting) { setShowModal(false); setSelectedPlayer(null) } }} color="secondary" variant="contained" >Cancel</Button>
                                 <Button type='submit' variant="contained" disabled={isSubmitting} >
                                     {
                                         isSubmitting ?
-                                        <CircularProgress size={15} color="inherit" />
-                                        :
-                                        `${values?.id ? 'Update' : 'Add'} Player`
+                                            <CircularProgress size={15} color="inherit" />
+                                            :
+                                            `${values?.id ? 'Update' : 'Add'} Player`
                                     }
                                 </Button>
                             </DialogActions>
@@ -187,7 +301,7 @@ const PlayersList = () => {
                 </Formik>
             </Dialog>
 
-            {/* <Dialog open={deleteModal} maxWidth="lg">
+            <Dialog open={deleteModal} maxWidth="lg">
                 <Formik enableReinitialize initialValues={selectedPlayer} onSubmit={deleteAction}>
                     {({ isSubmitting, values }) => (
                         <Form>
@@ -220,38 +334,36 @@ const PlayersList = () => {
                 </Formik>
             </Dialog>
 
-            <Dialog open={doneModal} maxWidth="lg">
-                <Formik enableReinitialize initialValues={selectedPlayer} onSubmit={deleteAction}>
-                    {({ isSubmitting, values }) => (
-                        <Form>
-                            <DialogContent className='pl-4 pr-4'>
-                                <h3 className='text-bold mt-05 text-primary'>Mark Task As Done</h3>
-                                <Divider className="mt-05 mb-2" />
-                                <Grid>
-                                    <p>Kindly confirm completion of task below:</p>
-                                    <p><b>Name:</b> {values?.name}</p>
-                                    <p><b>Description:</b> {values?.description}</p>
-                                    <p><b>Priority:</b> {values?.priority}</p>
-                                    <p><b>Start Date:</b> {values?.startDate}</p>
-                                    <p><b>Due Date:</b> {values?.dueDate}</p>
-                                    <p><b>Assigned To:</b> {values?.assignedTo}</p>
-                                </Grid>
-                            </DialogContent>
-                            <DialogActions className='pr-3 pb-3'>
-                                <Button disabled={isSubmitting} onClick={() => { if(!isSubmitting) { setShowDoneModal(false); setSelectedPlayer(null) }}} color="secondary" variant="contained" >Cancel</Button>
-                                <Button type='submit' variant="contained" disabled={isSubmitting}>
-                                    {
-                                        isSubmitting ?
-                                        <CircularProgress size={15} color="inherit" />
-                                        :
-                                        `Complete Task`
-                                    }
-                                </Button>
-                            </DialogActions>
-                        </Form>
-                    )}
-                </Formik>
-            </Dialog> */}
+            <Dialog open={viewPlayerModal} maxWidth="lg">
+                <DialogContent className='pl-4 pr-4'>
+                    <h3 className='text-bold mt-05 text-primary'>{ selectedPlayer?.fullname?.toUpperCase() }</h3>
+                    <Divider className="mt-05 mb-2" />
+
+                    <div style={{ display: 'flex', flexDirection: 'row' }}>
+                        <img src={ playerWikiInfo?.imageUrl || '' } alt={ selectedPlayer?.fullname } style={{ height: '300px', width: '300px', marginRight: '30px' }} />
+
+                        <Grid>
+                            <p><b>Full Name:</b> { selectedPlayer?.fullname }</p>
+                            <p><b>Club:</b> { selectedPlayer?.club }</p>
+                            <p><b>Nationality:</b> { selectedPlayer?.nationality }</p>
+                            <p><b>Position:</b> { selectedPlayer?.position }</p>
+                            <p><b>Player Value:</b> { formatCurrency(Number(selectedPlayer?.player_value)) || 0 }</p>
+                            <p><b>Date Created:</b> { moment(selectedPlayer?.created_at).format('LL') }</p>
+                        </Grid>
+                    </div>
+
+                    <Divider className="mt-05 mb-2" />
+
+                    <h4 className='mt-05 text-primary'>Other information from Wikipedia: </h4>
+
+                    <div dangerouslySetInnerHTML={ renderHTML(playerWikiInfo?.extract) } />
+                </DialogContent>
+
+                <DialogActions className='pr-3 pb-3'>
+                    <Button onClick={() => setViewPlayerModal(false)} color="secondary" variant="contained" >Close</Button>
+                </DialogActions>
+
+            </Dialog>
         </PageContainer>
     )
 }

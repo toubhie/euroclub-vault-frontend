@@ -20,11 +20,9 @@ const Header = () => {
                                 </Grid>
                                 <Grid item xs={6} sm={6} md={9} lg={9}>
                                     {
-                                        sm ?
                                         <Button>
                                             <Menu style={{ fontSize: '30px' }} />
                                         </Button>
-                                        : null
                                     }
                                 </Grid>
                             </Grid>

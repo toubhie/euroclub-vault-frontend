@@ -13,16 +13,33 @@ const PlayerCard = ({ dispatch, player, id, setModalOpen }: PlayerCardProps) => 
   const {fullname, player_value: playerValue, images} = player;
 
   return (
-    <button
-      className="product-card"
-      onClick={() => {
-        dispatch({type: 'SET_ACTIVE_PLAYER_ID', id});
-      }}
-    >
-      <img className="product-card-image" src={'https://picsum.photos/id/237/200/300'} alt={fullname} />
-      <p className="product-name">{fullname}</p>
-      <p className="product-price">£{Number(playerValue).toFixed(2)}</p>
-    </button>
+    // <button
+    //   className="product-card"
+    //   onClick={() => {
+    //     dispatch({type: 'SET_ACTIVE_PLAYER_ID', id});
+    //   }}
+    // >
+    //   <img className="product-card-image" src={'https://picsum.photos/id/237/200/300'} alt={fullname} />
+    //   <p className="product-name">{fullname}</p>
+    //   <p className="product-price">£{Number(playerValue).toFixed(2)}</p>
+    // </button>
+
+    <div className="random-user">
+      <div className="user-image">
+        <img src={'https://picsum.photos/id/237/200/300'} alt={fullname} />
+      </div>
+      <div className="user-details">
+        <div>
+          <strong>Name:</strong> {fullname}
+        </div>
+        <div>
+          <strong>Country:</strong> £{Number(playerValue).toFixed(2)}
+        </div>
+        <div>
+         
+        </div>
+      </div>
+    </div>
   );
 };
 

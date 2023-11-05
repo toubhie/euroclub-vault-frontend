@@ -15,24 +15,12 @@ const Footer = () => {
                                     <div className="footer-logo text-center mb-2">
                                         <Logo />
                                     </div>
-                        
-                                    <div className="footer-tittle mb-2">
-                                        <div className="footer-pera">
-                                            <ul id="navigation" className='mb-0'>
-                                                <li><Link to="/">Home</Link></li>
-                                                <li><Link to="/publications">Publications</Link></li>
-                                                <li><Link to="/resources">Resources</Link></li>
-                                                <li><Link to="/">FSRCC</Link></li>
-                                                <li><Link to="/contact">Contact</Link></li>
-                                            </ul>
-                                        </div>
-                                    </div>
 
-                                    <div className="footer-social">
-                                        <a href="#"><i className="fab fa-facebook"></i></a>
-                                        <a href="#"><i className="fab fa-twitter"></i></a>
-                                        <a href="#"><i className="fab fa-linkedin"></i></a>
-                                    </div>
+                                    <p>A Performativ assessment by <b>Tobi Williams</b></p>
+
+                                    <p>EuroClub Vault is a comprehensive database of football players across Europe, offering detailed player profiles from prominent leagues like the English Premier League, the Champions League, and the World Cup. It provides users with extensive player information, including full names, clubs, ages, nationalities, positions, and market values, stored in a secure database. The platform's unique feature is its data enrichment capability, integrating with sources like Wikipedia to provide additional player background and achievements.</p>
+                                        
+                                    <p>EuroClub Vault supports Create, Read, Update, and Delete (CRUD) operations through both a user interface (UI) and an API, making it a versatile tool for managing player data. Users can also sort and filter player listings, facilitating easy access to specific players and group analysis. Built with React and TypeScript on the frontend and Laravel on the backend, EuroClub Vault includes third-party integrations and thorough testing, catering to football enthusiasts, scouts, and analysts seeking a comprehensive football player information hub.</p>
                                 </div>
                             </div>
                         </div>
@@ -47,7 +35,7 @@ const Footer = () => {
                             <div className="col-xl-12 ">
                                 <div className="footer-copy-right text-center">
                                     <p>
-                                        Copyright &copy; { new Date().getFullYear() }. All rights reserved
+                                        Copyright &copy; {new Date().getFullYear()}. All rights reserved
                                     </p>
                                 </div>
                             </div>
