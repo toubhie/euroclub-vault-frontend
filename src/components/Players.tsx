@@ -9,7 +9,6 @@ type PlayerCardProps = {
 
 const PlayerCard = ({ dispatch, player, id, setModalOpen }: PlayerCardProps) => {
 
-  console.log('player>>>>', player)
   const {fullname, player_value: playerValue, images} = player;
 
   return (

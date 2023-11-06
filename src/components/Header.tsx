@@ -2,7 +2,6 @@ import { Menu } from '@mui/icons-material'
 import { Button, Grid, } from '@mui/material'
 import React from 'react'
 import { useMediaQuery } from 'react-responsive'
-import { Link } from 'react-router-dom'
 import Logo from './common/Logo'
 
 const Header = () => {

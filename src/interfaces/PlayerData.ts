@@ -5,6 +5,6 @@ export interface PlayerData {
     nationality: string;
     position: string;
     club: string;
-    created_at?: Date;
-    updated_at?: Date;
+    created_at?: string;
+    updated_at?: string;
 }

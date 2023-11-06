@@ -34,11 +34,16 @@ const deletePlayer = async (id: number) => {
     return await makeDeleteRequest(`players/${id}`);
 };
 
+const filterPlayers = async (data: any) => {
+    return await makePostRequest('players/filter', data);
+};
+
 export {
     getAllPlayers,
     updatePlayer,
     createPlayer,
     getAllPlayerPositions,
     getWikiInfoForPlayer,
-    deletePlayer
+    deletePlayer,
+    filterPlayers
 };
