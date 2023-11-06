@@ -17,13 +17,13 @@ const Header = () => {
                                 <Grid item xs={6} sm={6} md={3} lg={3}>
                                     <Logo />
                                 </Grid>
-                                <Grid item xs={6} sm={6} md={9} lg={9}>
+                                {/* <Grid item xs={6} sm={6} md={9} lg={9}>
                                     {
                                         <Button>
                                             <Menu style={{ fontSize: '30px' }} />
                                         </Button>
                                     }
-                                </Grid>
+                                </Grid> */}
                             </Grid>
                         </div>
                     </div>

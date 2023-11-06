@@ -252,7 +252,7 @@ const PlayersList = () => {
                             </div>
 
 
-                            <div style={{ height: 400, width: '100%', textAlign: 'center' }}>
+                            <div style={{ height: 700, width: '100%', textAlign: 'center' }}>
                                 <DataGrid
                                     className=''
                                     columns={columns}
