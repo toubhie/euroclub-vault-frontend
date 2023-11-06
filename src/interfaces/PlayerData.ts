@@ -7,4 +7,5 @@ export interface PlayerData {
     club: string;
     created_at?: string;
     updated_at?: string;
+    formatted_player_value?: string;
 }

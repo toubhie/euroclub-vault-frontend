@@ -34,7 +34,7 @@ const PlayersList = () => {
     const [processing, setProcessing] = useState(false)
 
     const defaultPlayer = {
-        fullname: "", club: "", position: "", nationality: "", age: "", player_value: ""
+        fullname: "", club: "", position: "", nationality: "", age: "", player_value: "", formatted_player_value: ""
     }
     const countryOptions = Object.entries(countriesData).map(([code, label]) => ({
         code,
@@ -56,7 +56,7 @@ const PlayersList = () => {
         { field: 'club', headerName: 'Club', width: 250 },
         { field: 'position', headerName: 'Position', width: 100 },
         { field: 'nationality', headerName: 'Nationality', width: 300 },
-        { field: 'player_value', headerName: 'Player value', width: 200 },
+        { field: 'formatted_player_value', headerName: 'Player value', width: 200 },
         { field: 'created_at', headerName: 'Date Created', width: 200 },
 
         {
@@ -139,7 +139,7 @@ const PlayersList = () => {
     const formatData = (players: PlayerData[]) => {
         return players.map((player) => {
           const formattedPlayer = { ...player };
-          formattedPlayer.player_value = formatCurrency(Number(player?.player_value));
+          formattedPlayer.formatted_player_value = formatCurrency(Number(player?.player_value));
           formattedPlayer.created_at = moment(player?.created_at).format('LL');
           return formattedPlayer;
         });
