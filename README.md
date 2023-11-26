@@ -2,7 +2,7 @@
 ![Logo](https://i.ibb.co/smP8gBr/Screenshot-2023-11-06-at-14-52-11.png)
 
 
-# EuroClub Vault - Performativ Assessment (Frontend)
+# EuroClub Vault (Frontend)
 
 The EuroClub Vault application's frontend, developed using React and TypeScript, offers an intuitive user interface featuring React components for modularity and ease of maintenance. It includes forms for entering and editing player information, handled efficiently through libraries like Formik. The DataGrid from Material-UI enables dynamic player list management with sorting and filtering capabilities. React's state management controls sorting, filtering, and modal dialogs for player management. Snackbar notifications, powered by the Notistack library, provide real-time feedback on actions such as creating or updating player profiles. The frontend communicates with the backend via API requests, integrates third-party services like Wikipedia for data enrichment, and offers features for user interaction, including player creation, editing, and deletion, as well as filtering and sorting options. In summary, the React-based frontend enhances user interaction, data management, and presentation, making it a crucial part of the Euroclub Vault application.
  
